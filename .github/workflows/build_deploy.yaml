@@ -1,0 +1,42 @@
+name: Deploy to AWS S3 & Invalidate CloudFront (Dev)
+on:
+  push:
+    branches: [ "dev" ]  # Solo se activa en pushes a la rama `dev`
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Paso 1: Checkout del código
+      - uses: actions/checkout@v4
+
+      # Paso 2: Configura Node.js 20
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Paso 3: Instalar dependencias y construir
+      - run: npm install
+      - run: npm run build
+
+      # Paso 4: Sincronizar con S3 (Bucket de Desarrollo)
+      - uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET_DEV }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_DEV }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY_DEV }}
+          SOURCE_DIR: './dist'
+
+      # Paso 5: Invalidar caché de CloudFront
+      - name: Invalidate CloudFront Distribution
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID_DEV }} \
+            --paths "/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_DEV }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY_DEV }}
+          AWS_REGION: 'us-east-1'  # Ajusta según tu región
