@@ -1,51 +1,86 @@
+/* ----- Reset básico ----- */
 body {
-  background-color: white !important; /* Fuerza fondo blanco */
+  background-color: white;
   margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
 }
 .landing {
-  background-color: white;
+  width: 80vw; /* Ocupa 80% del ancho de la pantalla */
+  min-width: 300px;
+  max-width: 1600px; /* Máximo ancho para no estirar demasiado en pantallas grandes */
+  /* margin: 0 auto; /* Centrado horizontal */
+  padding: 20px;
+  /* box-sizing: border-box;
 }
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+/* ----- Navbar ----- */
+.navbar {
+  width: 100%;
+  box-sizing: border-box;	
+  background-color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  height: 50px; /* Ajusta según el tamaño de tu logo */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.login-button {
+  background-color: #32B18F; /* Verde de tu paleta */
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* ----- Hero Section ----- */
+.hero {
+  width: calc(100% - 34px);	
+  text-align: center;
+  padding: 5rem 1rem;
+  background: linear-gradient(135deg, #004884 0%, #32B18F 100%); /* Degradado azul-verde */
+  color: white;
+  min-height: 60vh; /* 60% del alto de la pantalla */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem auto 0;
 }
 
-.card {
-  padding: 2em;
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
 }
 
-.read-the-docs {
-  color: #888;
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.cta-button {
+  background-color: white;
+  color: #004884;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  transform: scale(1.05); /* Efecto al pasar el mouse */
 }
