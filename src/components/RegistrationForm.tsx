@@ -1,4 +1,5 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 
 type FormData = {
   email: string;
@@ -25,6 +26,17 @@ type FormData = {
   workCertFile: File | null;
 };
 
+type FormErrors = {
+  email?: string;
+  ci?: string;
+  phone1?: string;
+  idFile?: string;
+  rifFile?: string;
+  ref1IdFile?: string;
+  ref2IdFile?: string;
+  [key: string]: string | undefined;
+};
+
 const relationOptions = [
   { value: 'amigo', label: 'Amigo' },
   { value: 'familiar', label: 'Familiar' },
@@ -34,8 +46,8 @@ const relationOptions = [
 ];
 
 const activityOptions = [
-  { value: 'dependencia', label: 'Relación de dependencia con empresa' },
-  { value: 'independiente', label: 'Trabajador independiente o comerciante' },
+  { value: 'dependencia', label: 'Relación de dependencia' },
+  { value: 'independiente', label: 'Trabajador independiente' },
   { value: 'negocio', label: 'Negocio propio' }
 ];
 
@@ -65,7 +77,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
     workCertFile: null
   });
 
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const validateEmail = (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -80,7 +92,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
   };
 
   const handleFileChange = (field: keyof FormData) => (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       if (file.size > 10 * 1024 * 1024) {
         setErrors({ ...errors, [field]: 'El archivo excede 10MB' });
@@ -93,11 +105,18 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const newErrors: Partial<FormData> = {};
+    const newErrors: FormErrors = {};
 
-    if (!validateEmail(formData.email)) newErrors.email = 'Correo inválido';
-    if (!validateCI(formData.ci)) newErrors.ci = 'Formato: V-12345678';
-    if (!validatePhone(formData.phone1)) newErrors.phone1 = 'Formato: 04141234567 o +584141234567';
+    // Validaciones
+    if (!formData.email.trim()) newErrors.email = 'Requerido';
+    else if (!validateEmail(formData.email)) newErrors.email = 'Correo inválido';
+    
+    if (!formData.ci.trim()) newErrors.ci = 'Requerido';
+    else if (!validateCI(formData.ci)) newErrors.ci = 'Formato: V-12345678';
+    
+    if (!formData.phone1.trim()) newErrors.phone1 = 'Requerido';
+    else if (!validatePhone(formData.phone1)) newErrors.phone1 = 'Formato: 04141234567 o +584141234567';
+    
     if (!formData.idFile) newErrors.idFile = 'Requerido';
     if (!formData.rifFile) newErrors.rifFile = 'Requerido';
     if (!formData.ref1IdFile) newErrors.ref1IdFile = 'Requerido';
@@ -106,8 +125,8 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      console.log('Datos enviados:', formData);
-      // Aquí iría la llamada a tu API
+      console.log('Datos válidos:', formData);
+      // Aquí iría el envío al backend
       onClose();
     }
   };
@@ -115,13 +134,13 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
   return (
     <div className="form-overlay">
       <div className="registration-form">
-        <h2>Formulario de Registro</h2>
+        <h2>Registro de Cliente</h2>
         <button className="close-btn" onClick={onClose}>×</button>
 
         <form onSubmit={handleSubmit}>
-          {/* Sección 1: Información Personal */}
+          {/* Información Personal */}
           <fieldset>
-            <legend>Información Personal</legend>
+            <legend>Datos Personales</legend>
             
             <div className="form-group">
               <label>Correo Electrónico: *</label>
@@ -130,7 +149,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 placeholder="ejemplo@gmail.com"
-                required
+                className={errors.email ? 'input-error' : ''}
               />
               {errors.email && <span className="error">{errors.email}</span>}
             </div>
@@ -163,13 +182,14 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 value={formData.ci}
                 onChange={(e) => setFormData({...formData, ci: e.target.value})}
                 placeholder="V-12345678"
+                className={errors.ci ? 'input-error' : ''}
                 required
               />
               {errors.ci && <span className="error">{errors.ci}</span>}
             </div>
           </fieldset>
 
-          {/* Sección 2: Contacto */}
+          {/* Contacto */}
           <fieldset>
             <legend>Información de Contacto</legend>
             
@@ -180,6 +200,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 value={formData.phone1}
                 onChange={(e) => setFormData({...formData, phone1: e.target.value})}
                 placeholder="04141234567"
+                className={errors.phone1 ? 'input-error' : ''}
                 required
               />
               {errors.phone1 && <span className="error">{errors.phone1}</span>}
@@ -201,13 +222,13 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="Av. Principal, Edif. X, Piso Y, Ciudad"
+                placeholder="Av. Principal, Casa #123"
                 required
               />
             </div>
           </fieldset>
 
-          {/* Sección 3: Redes Sociales */}
+          {/* Redes Sociales */}
           <fieldset>
             <legend>Redes Sociales (Opcional)</legend>
             
@@ -242,12 +263,12 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
             </div>
           </fieldset>
 
-          {/* Sección 4: Referencias Personales */}
+          {/* Referencias Personales */}
           <fieldset>
             <legend>Referencias Personales</legend>
             
             <div className="form-group">
-              <label>Referencia 1 - Nombre y Apellido: *</label>
+              <label>Referencia 1 - Nombre: *</label>
               <input
                 type="text"
                 value={formData.ref1Name}
@@ -277,16 +298,53 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange('ref1IdFile')}
+                className={errors.ref1IdFile ? 'input-error' : ''}
                 required
               />
-              <p className="file-hint">Sube 1 archivo (PDF o imagen, max 10MB)</p>
+              <p className="file-hint">PDF, JPG o PNG (max 10MB)</p>
               {errors.ref1IdFile && <span className="error">{errors.ref1IdFile}</span>}
             </div>
 
-            {/* Repetir para Referencia 2 */}
+            <div className="form-group">
+              <label>Referencia 2 - Nombre: *</label>
+              <input
+                type="text"
+                value={formData.ref2Name}
+                onChange={(e) => setFormData({...formData, ref2Name: e.target.value})}
+                placeholder="Carlos Pérez"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Referencia 2 - Parentesco: *</label>
+              <select
+                value={formData.ref2Relation}
+                onChange={(e) => setFormData({...formData, ref2Relation: e.target.value})}
+                required
+              >
+                <option value="">Seleccione...</option>
+                {relationOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Cédula Referencia 2: *</label>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleFileChange('ref2IdFile')}
+                className={errors.ref2IdFile ? 'input-error' : ''}
+                required
+              />
+              <p className="file-hint">PDF, JPG o PNG (max 10MB)</p>
+              {errors.ref2IdFile && <span className="error">{errors.ref2IdFile}</span>}
+            </div>
           </fieldset>
 
-          {/* Sección 5: Información Laboral */}
+          {/* Información Laboral */}
           <fieldset>
             <legend>Información Laboral</legend>
             
@@ -329,7 +387,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
             </div>
           </fieldset>
 
-          {/* Sección 6: Documentos */}
+          {/* Documentos */}
           <fieldset>
             <legend>Documentos Requeridos</legend>
             
@@ -339,9 +397,10 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange('idFile')}
+                className={errors.idFile ? 'input-error' : ''}
                 required
               />
-              <p className="file-hint">Sube 1 archivo (PDF o imagen, max 10MB)</p>
+              <p className="file-hint">PDF, JPG o PNG (max 10MB)</p>
               {errors.idFile && <span className="error">{errors.idFile}</span>}
             </div>
 
@@ -351,9 +410,10 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange('rifFile')}
+                className={errors.rifFile ? 'input-error' : ''}
                 required
               />
-              <p className="file-hint">Sube 1 archivo (PDF o imagen, max 10MB)</p>
+              <p className="file-hint">PDF, JPG o PNG (max 10MB)</p>
               {errors.rifFile && <span className="error">{errors.rifFile}</span>}
             </div>
 
@@ -364,7 +424,7 @@ export default function RegistrationForm({ onClose }: { onClose: () => void }) {
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange('workCertFile')}
               />
-              <p className="file-hint">Sube 1 archivo (PDF o imagen, max 10MB)</p>
+              <p className="file-hint">PDF, JPG o PNG (max 10MB)</p>
             </div>
           </fieldset>
 
